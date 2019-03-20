@@ -6,29 +6,30 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"strings"
 )
 
 type NoteDoc struct {
-	Doc map[string]interface{}
-	FileDir string
-	FileName string
-	KeyName string
+	Doc         map[string]interface{}
+	FileDir     string
+	FileName    string
+	KeyName     string
 	PackageName string
-	DocJson string
+	DocJson     string
 }
 
 func (c *NoteDoc) MapToFile() error {
 	var err error
-	if c.FileName == ""{
+	if c.FileName == "" {
 		return errors.New("文件名称不存在")
 	}
-	if c.KeyName == ""{
+	if c.KeyName == "" {
 		return errors.New("变量名称不存在")
 	}
-	if c.PackageName == ""{
+	if c.PackageName == "" {
 		return errors.New("包名不存在")
 	}
 	docJson, _ := json.Marshal(c.Doc)
@@ -43,12 +44,13 @@ func (c *NoteDoc) MapToFile() error {
 	} else {
 		f, _ = os.Create(saveFileName) //创建文件
 	}
+	log.Println(saveFileName, c.FileDir, c.FileName)
 	// 拼接稳定文件
 	doc1 := string(docJson)
-	doc1 = strings.Replace(doc1,"\"","'",-1)
+	doc1 = strings.Replace(doc1, "\"", "'", -1)
 	doc1 = "\"" + doc1 + "\""
-	doc1 = "package " + c.PackageName + " \r\nvar " + c.KeyName + " = " +   doc1
-	_,err = io.WriteString(f, doc1) //写入文件(字符串)
+	doc1 = "package " + c.PackageName + " \r\nvar " + c.KeyName + " = " + doc1
+	_, err = io.WriteString(f, doc1) //写入文件(字符串)
 	return err
 }
 
