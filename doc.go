@@ -2,6 +2,7 @@ package xingoudoc
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -10,25 +11,55 @@ import (
 	"strings"
 )
 
-type doc struct {
-	msg string
+type NoteDoc struct {
+	Doc map[string]interface{}
+	FileDir string
+	FileName string
+	KeyName string
+	PackageName string
+	DocJson string
 }
 
-func (c *doc) Error()string{
-	return c.msg
-}
-
-func GetApiDoc(dir ...string) (map[string]interface{},error){
-	var apiDir string
-	if len(dir) == 0{
-		apiDir = "controller/"
+func (c *NoteDoc) MapToFile() error {
+	var err error
+	if c.FileName == ""{
+		return errors.New("文件名称不存在")
 	}
+	if c.KeyName == ""{
+		return errors.New("变量名称不存在")
+	}
+	if c.PackageName == ""{
+		return errors.New("包名不存在")
+	}
+	docJson, _ := json.Marshal(c.Doc)
+	var f *os.File
+	saveFileName := c.FileDir + c.FileName
+	exist := true
+	if _, err := os.Stat(saveFileName); os.IsNotExist(err) {
+		exist = false
+	}
+	if exist { //如果文件存在
+		f, _ = os.OpenFile(saveFileName, os.O_RDWR, 0666) //打开文件
+	} else {
+		f, _ = os.Create(saveFileName) //创建文件
+	}
+	// 拼接稳定文件
+	doc1 := string(docJson)
+	doc1 = strings.Replace(doc1,"\"","'",-1)
+	doc1 = "\"" + doc1 + "\""
+	doc1 = "package " + c.PackageName + " \r\nvar " + c.KeyName + " = " +   doc1
+	_,err = io.WriteString(f, doc1) //写入文件(字符串)
+	return err
+}
+
+func (c *NoteDoc) GetApiDoc(apiDir string) error {
 	data := make(map[string]interface{})
 	files, err := ioutil.ReadDir(apiDir)
 	if err != nil {
-		return data,errors.New("目录不存在")
+		return errors.New("目录不存在")
 	}
 	methodStart := 0
+	errMsg := ""
 	for _, f := range files {
 		fs, _ := os.Open(apiDir + f.Name())
 		rd := bufio.NewReader(fs)
@@ -40,6 +71,9 @@ func GetApiDoc(dir ...string) (map[string]interface{},error){
 			if err != nil || io.EOF == err {
 				break
 			}
+			// 去除空格 换行等特殊符号
+			line = strings.Replace(line, " ", "", -1)
+			line = strings.Replace(line, "\r", "", -1)
 			if len(line) < 2 {
 				continue
 			}
@@ -49,7 +83,8 @@ func GetApiDoc(dir ...string) (map[string]interface{},error){
 			startTag, _ := regexp.MatchString("//@start", line)
 			if startTag {
 				if methodStart == 1 {
-					panic("注释没有闭合标签")
+					errMsg = "注释没有闭合标签"
+					break
 				}
 				methodStart = 1
 				paramMap = make(map[string]interface{})
@@ -59,19 +94,20 @@ func GetApiDoc(dir ...string) (map[string]interface{},error){
 			endTag, _ := regexp.MatchString("//@end", line)
 			if endTag {
 				if methodStart != 3 {
-					panic("解析解析必须在返回参数解析之后")
+					errMsg = "解析解析必须在返回参数解析之后"
+					break
 				}
 				methodStart = 0
 				temp["param"] = paramMap
 				temp["return"] = returnMap
 				data[temp["name"].(string)] = temp
-				//log.Println("结束解析注释")
 				continue
 			}
 			paramTag, _ := regexp.MatchString("//@param", line)
 			if paramTag {
 				if methodStart != 1 {
-					panic("参数解析必须在开始标签之后")
+					errMsg = "参数解析必须在开始标签之后"
+					break
 				}
 				methodStart = 2
 				continue
@@ -79,7 +115,8 @@ func GetApiDoc(dir ...string) (map[string]interface{},error){
 			returnTag, _ := regexp.MatchString("//@return", line)
 			if returnTag {
 				if methodStart != 2 {
-					panic("返回参数解析必须在参数解析标签之后")
+					errMsg = "返回参数解析必须在参数解析标签之后"
+					break
 				}
 				methodStart = 3
 				continue
@@ -101,11 +138,18 @@ func GetApiDoc(dir ...string) (map[string]interface{},error){
 				returnMap[arr["name"].(string)] = arr
 			}
 		}
+		if errMsg != "" {
+			break
+		}
 		if methodStart == 1 {
-			panic("注释缺失闭合标签")
+			errMsg = "注释缺失闭合标签"
 		}
 	}
-	return data,nil
+	if errMsg != "" {
+		return errors.New(errMsg)
+	}
+	c.Doc = data
+	return nil
 }
 
 func checkParam(data map[string]interface{}) (map[string]interface{}, bool) {
