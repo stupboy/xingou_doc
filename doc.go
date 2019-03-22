@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type NoteDoc struct {
@@ -98,7 +99,10 @@ func (c *NoteDoc) MapToFile() error {
 }
 
 func (c *NoteDoc) GetApiDoc(apiDir string) error {
-	//data := make(map[string]interface{})
+	// data := make(map[string]interface{})
+	if c.Doc == nil{
+		c.Doc["add_time"] = time.Now().Unix()
+	}
 	files, err := ioutil.ReadDir(apiDir)
 	if err != nil {
 		return errors.New("目录不存在")
