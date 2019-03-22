@@ -21,6 +21,49 @@ type NoteDoc struct {
 	DocJson     string
 }
 
+func (c *NoteDoc) MapToHtml() string {
+	var html string
+	for key,value := range c.Doc{
+		valueMap := value.(map[string]interface{})
+		html = html + key + " " + valueMap["title"].(string)
+		html = html + "<table>"
+		html = html + "<tr><td>参数</td></tr>"
+		for kp,vp := range valueMap["param"].(map[string]interface{}){
+			html = html + "<tr>"
+			vpMap := vp.(map[string]interface{})
+			html = html + "<td>" + kp + "</td>"
+			html = html + "<td>" + vpMap["info"].(string) + "</td>"
+			html = html + "<td>" + vpMap["type"].(string) + "</td>"
+			html = html + "<td>" + vpMap["must"].(string) + "</td>"
+			html = html + "<td>" + vpMap["value"].(string) + "</td>"
+			html = html + "<td>" + vpMap["rule"].(string) + "</td>"
+			//html = html + kp + vpMap["info"].(string) + "<br>"
+			html = html + "</tr>"
+			log.Print(vp)
+		}
+		//html = html + "<br>返回<br>"
+		//html = html + "<table>"
+		html = html + "<tr><td>返回</td></tr>"
+		for kr,vr := range valueMap["return"].(map[string]interface{}){
+			html = html + "<tr>"
+			vpMap := vr.(map[string]interface{})
+			html = html + "<td>" + kr + "</td>"
+			html = html + "<td>" + vpMap["info"].(string) + "</td>"
+			html = html + "<td>" + vpMap["type"].(string) + "</td>"
+			html = html + "<td>" + vpMap["mock"].(string) + "</td>"
+			html = html + "<td>" + vpMap["id"].(string) + "</td>"
+			html = html + "<td>" + vpMap["pid"].(string) + "</td>"
+			//html = html + kp + vpMap["info"].(string) + "<br>"
+			html = html + "</tr>"
+			log.Print(vr)
+		}
+		html = html + "</table>"
+		html = html + "<hr>"
+		log.Print(value)
+	}
+	return html
+}
+
 func (c *NoteDoc) MapToFile() error {
 	var err error
 	if c.FileName == "" {
@@ -55,7 +98,7 @@ func (c *NoteDoc) MapToFile() error {
 }
 
 func (c *NoteDoc) GetApiDoc(apiDir string) error {
-	data := make(map[string]interface{})
+	//data := make(map[string]interface{})
 	files, err := ioutil.ReadDir(apiDir)
 	if err != nil {
 		return errors.New("目录不存在")
@@ -102,7 +145,7 @@ func (c *NoteDoc) GetApiDoc(apiDir string) error {
 				methodStart = 0
 				temp["param"] = paramMap
 				temp["return"] = returnMap
-				data[temp["name"].(string)] = temp
+				c.Doc[temp["name"].(string)] = temp
 				continue
 			}
 			paramTag, _ := regexp.MatchString("//@param", line)
@@ -150,7 +193,6 @@ func (c *NoteDoc) GetApiDoc(apiDir string) error {
 	if errMsg != "" {
 		return errors.New(errMsg)
 	}
-	c.Doc = data
 	return nil
 }
 
