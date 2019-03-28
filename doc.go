@@ -216,8 +216,13 @@ func checkParam(data map[string]interface{}) (map[string]interface{}, bool) {
 	if _, ok := data["value"]; !ok {
 		data["value"] = "none"
 	}
+	// 检查规则
 	if _, ok := data["rule"]; !ok {
 		data["rule"] = "none"
+	}
+	// 字符串校验 strict 表示开启特殊字符检查包含则不通过
+	if _, ok := data["check"]; !ok {
+		data["check"] = "strict"
 	}
 	return data, true
 }
