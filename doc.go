@@ -88,6 +88,7 @@ func (c *NoteDoc) MapToFile() error {
         f, _ = os.Create(saveFileName) //创建文件
     }
     log.Println(saveFileName, c.FileDir, c.FileName)
+    //time.Sleep(2*time.Second)
     // 拼接稳定文件
     doc1 := string(docJson)
     doc1 = strings.Replace(doc1, "\"", "'", -1)
@@ -98,7 +99,6 @@ func (c *NoteDoc) MapToFile() error {
 }
 
 func (c *NoteDoc) GetApiDoc(apiDir string) error {
-    // data := make(map[string]interface{})
     if c.Doc == nil {
         c.Doc = make(map[string]interface{})
     }
@@ -122,12 +122,23 @@ func (c *NoteDoc) GetApiDoc(apiDir string) error {
             // 去除空格 换行等特殊符号
             line = strings.Replace(line, " ", "", -1)
             line = strings.Replace(line, "\r", "", -1)
-            if len(line) < 2 {
+            line = strings.Replace(line, "\n", "", -1)
+            //log.Println(line)
+            if len(line) < 4 {
                 continue
             }
-            if line[0:2] != "//" {
+            if line[0:2] != "//" && line[0:4] != "func" {
                 continue
             }
+
+            if line[0:4] == "func" && methodStart == 4{
+                endNum := strings.Index(line,"(")
+                temp["func"] = line[4:endNum]
+                c.Doc[temp["name"].(string)] = temp
+                methodStart = 0
+                continue
+            }
+
             startTag, _ := regexp.MatchString("//@start", line)
             if startTag {
                 if methodStart == 1 {
@@ -145,10 +156,9 @@ func (c *NoteDoc) GetApiDoc(apiDir string) error {
                     errMsg = "解析解析必须在返回参数解析之后"
                     break
                 }
-                methodStart = 0
+                methodStart = 4
                 temp["param"] = paramMap
                 temp["return"] = returnMap
-                c.Doc[temp["name"].(string)] = temp
                 continue
             }
             paramTag, _ := regexp.MatchString("//@param", line)
