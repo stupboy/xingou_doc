@@ -132,8 +132,14 @@ func (c *NoteDoc) GetApiDoc(apiDir string) error {
             }
 
             if line[0:4] == "func" && methodStart == 4{
+                startNum := 4
                 endNum := strings.Index(line,"(")
-                temp["func"] = line[4:endNum]
+                otherEndNum := strings.LastIndex(line,"(")
+                if endNum != otherEndNum {
+                    startNum = strings.Index(line,")") + 1
+                    endNum = otherEndNum
+                }
+                temp["func"] = line[startNum:endNum]
                 c.Doc[temp["name"].(string)] = temp
                 methodStart = 0
                 continue
