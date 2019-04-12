@@ -112,14 +112,15 @@ func (c *NoteDoc) MapToJson() error {
     if _, err := os.Stat(saveFileName); os.IsNotExist(err) {
         exist = false
     }
+
     if exist { //如果文件存在
         f, _ = os.OpenFile(saveFileName, os.O_RDWR, 0666) //打开文件
-    } else {
-        f, _ = os.Create(saveFileName) //创建文件
+        _ = os.Remove(saveFileName)
     }
-    // 拼接稳定文件
+
+    f, _ = os.Create(saveFileName) //创建文件
+
     doc1 := string(docJson)
-    log.Println(doc1,"============")
     _, err = io.WriteString(f, doc1) //写入文件(字符串)
     return err
 }
