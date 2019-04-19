@@ -267,6 +267,10 @@ func checkParam(data map[string]interface{}) (map[string]interface{}, bool) {
     if _, ok := data["check"]; !ok {
         data["check"] = "strict"
     }
+    // 参数分组
+    if _, ok := data["map"]; !ok{
+        data["map"] = "none"
+    }
     return data, true
 }
 
