@@ -58,7 +58,7 @@ func (allParam *AllParam)InitW1(){
     }
 }
 
-func (allParam *AllParam)addFormat(format string,argus ...interface{}){
+func (allParam *AllParam)AddFormat(format string,argus ...interface{}){
     allParam.InitW1()
     v := fmt.Sprintf(format,argus...)
     if strings.Contains(v,"%!") {
@@ -69,14 +69,14 @@ func (allParam *AllParam)addFormat(format string,argus ...interface{}){
     }
 }
 
-func (allParam *AllParam)addOther(key string,value string){
+func (allParam *AllParam)AddOther(key string,value string){
     if allParam.Condition == ""{
         allParam.Condition = " 1=1 "
     }
     allParam.Condition += " and " + key + " = " + value
 }
 
-func (allParam *AllParam)addEqual(key string,argus ...string){
+func (allParam *AllParam)AddEqual(key string,argus ...string){
     var (
         p   string
         val interface{}
@@ -102,7 +102,7 @@ func (allParam *AllParam)addEqual(key string,argus ...string){
         allParam.Condition += " and " + argus[0] + "=" + p
     }
 }
-func (allParam *AllParam)addLike(key string,argus ...string){
+func (allParam *AllParam)AddLike(key string,argus ...string){
     var (
         p   string
         val interface{}
@@ -131,12 +131,12 @@ func (allParam *AllParam)addLike(key string,argus ...string){
 
 
 // 构造查询条件  username
-func (allParam AllParam) createWhere(param ...WhereInfo){
+func (allParam AllParam) CreateWhere(param ...WhereInfo){
 
 }
 
 // 增加查询条件
-func (allParam AllParam) addWhere(param ...WhereString){
+func (allParam AllParam) AddWhere(param ...WhereString){
     for _,str := range param{
         key,way,alias := str.Analyze()
         log.Println(key,way,alias)
@@ -144,14 +144,14 @@ func (allParam AllParam) addWhere(param ...WhereString){
 }
 
 // 获取分页数据
-func (allParam AllParam) page() (info PageInfo){
-    info.Page = allParam.int("page",1)
-    info.Size = allParam.int("size",10)
+func (allParam AllParam) Page() (info PageInfo){
+    info.Page = allParam.Int("page",1)
+    info.Size = allParam.Int("size",10)
     return info
 }
 
 // 请求参数格式化
-func (allParam AllParam) string(key string, argus ...string) (param string) {
+func (allParam AllParam) String(key string, argus ...string) (param string) {
     defer func() {
         if r := recover(); r != nil {
             allParam.ErrMap[key] = r
@@ -168,7 +168,7 @@ func (allParam AllParam) string(key string, argus ...string) (param string) {
     return param
 }
 
-func (allParam AllParam) int(key string, argus ...int) (param int) {
+func (allParam AllParam) Int(key string, argus ...int) (param int) {
     defer func() {
         if r := recover(); r != nil {
             allParam.ErrMap[key] = r
