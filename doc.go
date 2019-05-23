@@ -6,7 +6,6 @@ import (
     "errors"
     "io"
     "io/ioutil"
-    "log"
     "os"
     "regexp"
     "strings"
@@ -40,7 +39,7 @@ func (c *NoteDoc) MapToHtml() string {
             html = html + "<td>" + vpMap["rule"].(string) + "</td>"
             //html = html + kp + vpMap["info"].(string) + "<br>"
             html = html + "</tr>"
-            log.Print(vp)
+            //print(vp)
         }
         //html = html + "<br>返回<br>"
         //html = html + "<table>"
@@ -56,11 +55,11 @@ func (c *NoteDoc) MapToHtml() string {
             html = html + "<td>" + vpMap["pid"].(string) + "</td>"
             //html = html + kp + vpMap["info"].(string) + "<br>"
             html = html + "</tr>"
-            log.Print(vr)
+            //log.Print(vr)
         }
         html = html + "</table>"
         html = html + "<hr>"
-        log.Print(value)
+        //log.Print(value)
     }
     return html
 }
@@ -88,7 +87,7 @@ func (c *NoteDoc) MapToFile() error {
     } else {
         f, _ = os.Create(saveFileName) //创建文件
     }
-    log.Println(saveFileName, c.FileDir, c.FileName)
+    println(saveFileName, c.FileDir, c.FileName)
     //time.Sleep(2*time.Second)
     // 拼接稳定文件
     doc1 := string(docJson)
