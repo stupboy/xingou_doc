@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// word
 type NoteDoc struct {
 	Doc         map[string]interface{}
 	FileDir     string
