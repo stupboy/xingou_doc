@@ -14,7 +14,7 @@ import (
 
 type GinDoc struct {
 	Doc         map[string]interface{}
-	DocSlice    []ApiDoc
+	DocMap      map[string]ApiDoc
 	FileDir     string
 	FileName    string
 	JsonName    string
@@ -77,7 +77,7 @@ func (c *GinDoc) ToFile() error {
 	if c.PackageName == "" {
 		return errors.New("包名不存在")
 	}
-	docJson, _ := json.Marshal(c.DocSlice)
+	docJson, _ := json.Marshal(c.DocMap)
 	var f *os.File
 	saveFileName := c.FileDir + c.FileName
 	exist := true
@@ -146,6 +146,9 @@ func (c *GinDoc) getFileDoc(apiDir string, f os.FileInfo) error {
 		temParam             DocParam
 		temReturn            DocReturn
 	)
+	if len(c.DocMap) < 1 {
+		c.DocMap = make(map[string]ApiDoc)
+	}
 	fs, _ = os.Open(apiDir + f.Name())
 	rd = bufio.NewReader(fs)
 	for {
@@ -240,7 +243,7 @@ func (c *GinDoc) getFileDoc(apiDir string, f os.FileInfo) error {
 			// temp["func"] = line[startNum:endNum]
 			temDoc.Head.Func = line[startNum:endNum]
 			// 结束分档分析
-			c.DocSlice = append(c.DocSlice, temDoc)
+			c.DocMap[temDoc.Head.Name+"@"+strings.ToUpper(temDoc.Head.Method)] = temDoc
 			temDoc = ApiDoc{}
 			temDoc.Params = make(map[string]DocParam)
 			temDoc.Returns = make(map[string]DocReturn)

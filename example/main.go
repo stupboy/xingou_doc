@@ -14,7 +14,7 @@ func main() {
 	Doc.KeyName = "DocJsonString"
 	Doc.PackageName = "utli"
 	err = Doc.GetApiDoc("example/controller/")
-	log.Println(Doc.DocSlice)
+	log.Println(Doc.DocMap)
 	Doc.ToFile()
 	if err != nil {
 		panic(err)
